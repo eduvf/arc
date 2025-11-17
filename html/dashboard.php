@@ -9,21 +9,21 @@
 </head>
 
 <?php
+require('actions/_lib.php');
 session_start();
 
-if (empty($_SESSION["user"])) {
-    header("Location: /");
-    exit();
-}
-
 $user = $_SESSION["user"];
+$is_admin = $_SESSION["is_admin"];
+
+_login_check_is_user();
 
 // Recull tots els dispositius registrats a la BD
 $db = new SQLite3("../db/arc.db");
-
 $devices = [];
-$consulta = $db->query("SELECT * FROM devices");
-while ($device = $consulta->fetchArray()) {
+
+// Desem tots els dispositiu registrats a la variable 'devices'
+$query = $db->query("SELECT * FROM devices");
+while ($device = $query->fetchArray()) {
     $devices[] = $device;
 }
 
@@ -38,16 +38,19 @@ $db->close();
         </nav>
         <hr>
     </header>
+
     <main class="container">
-        <form action="/actions/deviceconnect.php" method="post">
+        <?php if ($is_admin): ?>
+
+        <form action="/actions/device_connect.php" method="post">
             <fieldset class="grid">
-                <select name="dispo" required>
+                <select name="dev_name" required>
                     <option selected disabled value="">Selecciona un dispositiu...</option>
                     <?php
                         foreach ($devices as $device) {
-                            $ip = $device['ip'];
-                            $name = $device['dname'];
-                            echo "<option value='$ip'>$name ($ip)</option>";
+                            $ip   = $device['dev_ip'];
+                            $name = $device['dev_name'];
+                            echo "<option value='$name'>$name ($ip)</option>";
                         }
                     ?>
                 </select>
@@ -55,58 +58,51 @@ $db->close();
             </fieldset>
         </form>
 
-        <form action="/actions/adddevice.php" method="post">
+        <form action="/actions/device_add.php" method="post">
             <fieldset class="grid">
-                <input type="text" name="namedev" required placeholder="Nom del nou dispositiu...">
-                <input type="text" name="ipdev" required placeholder="IP del dispositiu...">
-                <input type="submit" class="secondary" value="Afegeix" />
+                <input type="text" name="dev_name" required placeholder="Nom del dispositiu...">
+                <input type="text" name="dev_ip" required placeholder="IP del dispositiu...">
+                <input type="submit" class="secondary" value="Afegeix/Modifica" />
             </fieldset>
-            <?= $_SESSION["add device error"] ?>
-            <?= $_SESSION["add device error"] = null ?>
+            <?php
+                echo "<span style='color:red;'>".$_SESSION["add_device_error"]."</span>";
+                $_SESSION["add_device_error"] = null;
+            ?>
         </form>
 
         <hr>
+        <?php endif; ?>
 
-        Exemple:
+        <h4>Registre (exemple)</h4>
         <div class="overflow-auto">
             <table class="striped">
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Usuari</th>
-                        <th>IP</th>
                         <th>Data i hora</th>
-                        <th>Registre</th>
+                        <th>Missatge</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <th>1</th>
-                        <td>Joan</td>
-                        <td>x.x.x.x</td>
+                        <td>1</td>
                         <td>2025-11-1 00:00</td>
-                        <td>Ha iniciat sessió al dispositiu A.</td>
+                        <td>S'ha iniciat sessió com a <code>ARC</code> des de <code>192.168.1.123</code>.</td>
                     </tr>
                     <tr>
                         <th>2</th>
-                        <td>Marta</td>
-                        <td>x.x.x.x</td>
-                        <td>2025-11-1 00:00</td>
-                        <td>Ha registrat el nou dispositiu B.</td>
+                        <td>2025-11-1 00:02</td>
+                        <td><code>ARC</code> ha afegit el dispositiu <code>test (192.168.1.10)</code>.</td>
                     </tr>
                     <tr>
                         <th>3</th>
-                        <td>Joan</td>
-                        <td>x.x.x.x</td>
-                        <td>2025-11-1 00:00</td>
-                        <td>Ha executat una comanda al dispositiu A (...).</td>
+                        <td>2025-11-1 00:04</td>
+                        <td><code>ARC</code> ha executat <code>ls</code> a <code>test (192.168.1.10)</code>.</td>
                     </tr>
                     <tr>
                         <th>4</th>
-                        <td>Marta</td>
-                        <td>x.x.x.x</td>
-                        <td>2025-11-1 00:00</td>
-                        <td>S'ha connectat al dispositiu B.</td>
+                        <td>2025-11-1 00:08</td>
+                        <td><code>ARC</code> ha iniciat el control de pantalla a <code>test (192.168.1.10)</code>.</td>
                     </tr>
                 </tbody>
             </table>

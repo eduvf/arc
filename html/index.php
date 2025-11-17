@@ -14,15 +14,24 @@
         background-position: center;
         background-size: cover;
     }
+
+    header {
+        background: var(--pico-background-color);
+    }
+
+    main {
+        max-width: 400px;
+        margin: 0 auto;
+    }
 </style>
 
 <body>
-    <header style="background: var(--pico-background-color);">
+    <header>
         <div class="container">
             <b>ARC</b> | Inici de sessió
         </div>
     </header>
-    <main class="container" style="max-width: 400px;">
+    <main>
         <article>
             <form action="/actions/login.php" method="post">
                 <label>
@@ -36,9 +45,9 @@
 
                 <?php
                 session_start();
-                if ($_SESSION["failed login"]) {
+                if ($_SESSION["failed_login"]) {
+                    $_SESSION["failed_login"] = false;
                     echo "<span style='color: red;'>Usuari o contrasenya incorrectes.</span>";
-                    $_SESSION["failed login"] = null;
                 }
                 ?>
 

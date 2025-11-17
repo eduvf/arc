@@ -1,7 +1,9 @@
 <?php
-
 session_start();
-$_SESSION["user"] = "";
-header("Location: /");
 
+// Anul·lem les variables de sessió pertinents
+$_SESSION["user"]     = null;
+$_SESSION["is_admin"] = null;
+
+header("Location: /");
 ?>
