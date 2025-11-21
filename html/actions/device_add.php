@@ -29,21 +29,39 @@ if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
     exit();
 }
 
-// Fem la inserció a la BD
-$db = new SQLite3("../../db/arc.db");
+// Cridem l'script per generar el certificat
+$cmd = "sudo /bin/NewARC " . escapeshellarg($name) . " " . escapeshellarg($ip);
+exec($cmd, $output, $retval);
 
-$stmt = $db->prepare("INSERT OR REPLACE INTO devices (dev_ip, dev_name) VALUES (:d_ip, :d_name)");
+// Comprovem que l'script ha funcionat correctament
+if ($retval !== 0) {
+    $_SESSION["add_device_error"] = "Error generant el certificat: <pre>" . implode("\n", $output) . "</pre>";
+    header("Location: /dashboard.php");
+    exit();
+}
+
+// El resultat de l'script (dades generades pel certificat)
+$conf_content = implode("\n", $output);
+
+// Encriptar les dades generades per al dispositiu
+$encrypted_data = encrypt_data($conf_content);
+
+// Fem la inserció a la BD (afegim també les dades encriptades del certificat)
+$db = new SQLite3("../../db/arc.db");
+$stmt = $db->prepare("INSERT OR REPLACE INTO devices (dev_ip, dev_name, cert_data) VALUES (:d_ip, :d_name, :cert_data)");
 $stmt->bindValue(":d_ip", $ip);
 $stmt->bindValue(":d_name", $name);
+$stmt->bindValue(":cert_data", $encrypted_data);
 
 // Executem la comanda i comprovem que hagi funcionat
 if ($stmt->execute() === false) {
-    $_SESSION["add_device_error"] = "ERROR: No s'ha pogut afegir el dispositiu degut a un error intern.";
+    $_SESSION["add_device_error"] = "ERROR: No s'ha pogut afegir el dispositiu. " . $db->lastErrorMsg();
     header("Location: /dashboard.php");
     exit();
 }
 
 $db->close();
 
+// Redirigir al dashboard un cop afegit el dispositiu
 header("Location: /dashboard.php");
-?>
+exit();

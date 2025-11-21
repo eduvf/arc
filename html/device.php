@@ -17,13 +17,29 @@ _login_check_is_user_admin_and_device();
 $user   = $_SESSION["user"];
 $dev_name = $_SESSION["dev_name"];
 
-// Recull el nom del dispositiu
+// Recupera el nom del dispositiu
 $db = new SQLite3("../db/arc.db");
 
-$query = $db->query("SELECT dev_ip FROM devices WHERE dev_name = '$dev_name'");
-$dev_ip = $query->fetchArray()[0];
+$query = $db->query("SELECT dev_ip, cert_data FROM devices WHERE dev_name = '$dev_name'");
+$device = $query->fetchArray();
+$dev_ip = $device['dev_ip'];
+$cert_data_encrypted = $device['cert_data'];  // Certificat encriptat
 
 $_SESSION["dev_ip"] = $dev_ip;
+
+// Desxifrem les dades del certificat (si existeixen)
+if ($cert_data_encrypted) {
+    // Desxifrem el certificat
+    $cert_data = decrypt_data($cert_data_encrypted);
+
+    // Generem el codi QR amb el certificat
+    $qr_image = generate_qr($cert_data);
+
+    // Guardem la imatge en el formulari de sessió per mostrar al frontend
+    $_SESSION["dev_qr_cert"] = "<img src='data:image/png;base64,$qr_image' alt='Certificat QR'>";
+} else {
+    $_SESSION["dev_qr_cert"] = null;
+}
 
 $db->close();
 ?>
@@ -39,10 +55,12 @@ $db->close();
 
     <div style="text-align: center">
         <?php
-        // Mostra el QR del certificat
+        // Mostra el QR del certificat si existeix
         if ($_SESSION["dev_qr_cert"]) {
             echo $_SESSION["dev_qr_cert"];
             $_SESSION["dev_qr_cert"] = null;
+        } else {
+            echo "<p style='color: red;'>Certificat no disponible per a aquest dispositiu.</p>";
         }
         ?>
     </div>
@@ -78,6 +96,8 @@ $db->close();
                         <option value="pull">adb pull</option>
                         <option value="install">adb install</option>
                         <option value="uninstall">adb uninstall</option>
+			<option value="list_install">List install packages</option>
+
                     </select>
                     <input type="text" name="cmd_text_arg" placeholder="Comanda o ruta...">
                     <input type="submit" value="Executa">

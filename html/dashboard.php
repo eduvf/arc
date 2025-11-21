@@ -16,12 +16,11 @@ $user = $_SESSION["user"];
 $is_admin = $_SESSION["is_admin"];
 
 _login_check_is_user();
-
 // Recull tots els dispositius registrats a la BD
 $db = new SQLite3("../db/arc.db");
 $devices = [];
 
-// Desem tots els dispositiu registrats a la variable 'devices'
+// Desem tots els dispositius registrats a la variable 'devices'
 $query = $db->query("SELECT * FROM devices");
 while ($device = $query->fetchArray()) {
     $devices[] = $device;
@@ -73,40 +72,54 @@ $db->close();
         <hr>
         <?php endif; ?>
 
-        <h4>Registre (exemple)</h4>
+        <h4>Dispositius registrats</h4>
         <div class="overflow-auto">
             <table class="striped">
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Data i hora</th>
-                        <th>Missatge</th>
+                        <th>Nom del dispositiu</th>
+                        <th>IP</th>
+                        <th>Certificat (QR)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>2025-11-1 00:00</td>
-                        <td>S'ha iniciat sessió com a <code>ARC</code> des de <code>192.168.1.123</code>.</td>
-                    </tr>
-                    <tr>
-                        <th>2</th>
-                        <td>2025-11-1 00:02</td>
-                        <td><code>ARC</code> ha afegit el dispositiu <code>test (192.168.1.10)</code>.</td>
-                    </tr>
-                    <tr>
-                        <th>3</th>
-                        <td>2025-11-1 00:04</td>
-                        <td><code>ARC</code> ha executat <code>ls</code> a <code>test (192.168.1.10)</code>.</td>
-                    </tr>
-                    <tr>
-                        <th>4</th>
-                        <td>2025-11-1 00:08</td>
-                        <td><code>ARC</code> ha iniciat el control de pantalla a <code>test (192.168.1.10)</code>.</td>
-                    </tr>
+                    <?php
+                    foreach ($devices as $device) {
+                        $device_name = $device['dev_name'];
+                        $device_ip = $device['dev_ip'];
+                        $cert_data_encrypted = $device['cert_data'];
+
+                        // Comprovem si hi ha un certificat per aquest dispositiu
+                        if ($cert_data_encrypted) {
+                            // Desxifrem les dades
+                            $cert_data = decrypt_data($cert_data_encrypted);
+
+                            // Generem el codi QR
+                            $qr_image = generate_qr($cert_data);
+
+                            // Mostrem el dispositiu amb el codi QR
+                            echo "<tr>
+                                    <td>#</td>
+                                    <td>$device_name</td>
+                                    <td>$device_ip</td>
+                                    <td><img src='data:image/png;base64,$qr_image' alt='QR del dispositiu'></td>
+                                  </tr>";
+                        } else {
+                            // Si no hi ha certificat, només mostrem el dispositiu sense QR
+                            echo "<tr>
+                                    <td>#</td>
+                                    <td>$device_name</td>
+                                    <td>$device_ip</td>
+                                    <td>No disponible</td>
+                                  </tr>";
+                        }
+                    }
+                    ?>
                 </tbody>
             </table>
         </div>
+
     </main>
 </body>
 
