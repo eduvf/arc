@@ -12,7 +12,7 @@ $safe_name = escapeshellarg($dev_name);
 $safe_ip   = escapeshellarg($dev_ip);
 
 // Comanda a executar
-$cmd = "/bin/NewARC $safe_name $safe_ip";
+$cmd = "sudo /bin/NewARC $safe_name $safe_ip";
 
 // Captura el resultat de l'execució de l'script (la sortida de "cat")
 exec($cmd, $output, $retval);
