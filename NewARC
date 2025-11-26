@@ -54,7 +54,7 @@ echo "AllowedIPs = ${IP}/24" >> "$WG1_FILE"
 
 
 #Crear fitxer de configuració del client
-CLIENT_CONF=""
+CLIENT_CONF="/tmp/client.conf"
 
 
 cat <<EOF > "$CLIENT_CONF"
