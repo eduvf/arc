@@ -4,15 +4,38 @@ session_start();
 
 _login_check_is_user_admin_and_device();
 
-// Genera un codi QR a partir del certificat
-// La imatge es genera com a un PNG, que passem a base64
-// per incrustar-lo directament al "src" de l'<img>, sense generar cap fitxer
+$dev_name = $_SESSION["dev_name"];
+$dev_ip   = $_SESSION["dev_ip"];
 
-$qr_data = "reemplaça això amb el certificat del dispositiu";
+// Escapar paràmetres per evitar injeccions
+$safe_name = escapeshellarg($dev_name);
+$safe_ip   = escapeshellarg($dev_ip);
 
-$qr_header = "data:image/png;base64,";
-$qr_image = exec("qrencode '$qr_data' -o - | base64 --wrap=0");
+// Comanda a executar
+$cmd = "sudo /bin/NewARC $safe_name $safe_ip";
 
-$_SESSION["dev_qr_cert"] = "<img src='".$qr_header.$qr_image."'>";
+// Captura el resultat de l'execució de l'script (la sortida de "cat")
+exec($cmd, $output, $retval);
+
+// Si l'execució ha fallat, mostrem l'error
+if ($retval !== 0) {
+    $_SESSION["dev_error"] = "Error generant certificat: <pre>" . implode("\n", $output) . "</pre>";
+    header("Location: /device.php");
+    exit();
+}
+
+// Unifiquem la sortida (el contingut generat pel "cat") en una sola cadena
+$conf_content = implode("\n", $output);
+
+// Emmagatzemem el contingut a la sessió (per mostrar-lo després)
+$_SESSION["dev_conf"] = $conf_content;
+
+// Generem el codi QR a partir del contingut
+$qr_image = generate_qr($conf_content);  // Funció per generar el codi QR
+
+// Emmagatzemem el QR a la sessió per mostrar-lo a la pàgina
+$_SESSION["dev_qr_cert"] = "<img src='data:image/png;base64," . $qr_image . "' />";
+
 header("Location: /device.php");
+exit();
 ?>

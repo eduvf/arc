@@ -1,0 +1,74 @@
+#!/bin/bash
+
+
+# Script per afegir un nou peer a WireGuard
+# Ús: sudo NewARC <nom_client> <ip_client>
+# Ex: sudo NewARC Android 192.168.2.2
+# By: Grup Bè IOC ASIX
+
+
+WG1_FILE="/etc/wireguard/wg1.conf"
+CLIENTS_DIR="/etc/wireguard/peers"
+ENPOINT="192.168.1.132:51820"
+
+if [ "$(whoami)" != "root" ]; then
+   echo "ROOT ONLY"
+   exit 1
+fi
+
+if [ -z "$1" ]; then
+ echo "Usage: $0 <nom_client> <ip_client>"
+ exit 1
+fi
+
+
+if [ -z "$2" ]; then
+ echo "Usage: $0 <nom_client> <ip_client>"
+ exit 1
+fi
+
+
+NAME="$1"
+IP="${2:-}"
+
+
+mkdir -p "$CLIENTS_DIR"
+#Generació de claus
+wg genkey | tee "${CLIENTS_DIR}/${NAME}.priv" | wg pubkey > "${CLIENTS_DIR}/${NAME}.pub"
+
+
+PUB_KEY=$(cat "${CLIENTS_DIR}/${NAME}.pub")
+PRIV_KEY=$(cat "${CLIENTS_DIR}/${NAME}.priv")
+
+
+# Obtenir informació del servidor
+SERVER_PUB=$(wg show wg1 public-key)
+SERVER_PORT=$(echo "$SERVER_ENDPOINT" | awk -F: '{print $2}')
+
+
+#Afegir peer
+echo -e "\n# peer $NAME" >> "$WG1_FILE"
+echo "[Peer]" >> "$WG1_FILE"
+echo "PublicKey = ${PUB_KEY}" >> "$WG1_FILE"
+echo "AllowedIPs = ${IP}/24" >> "$WG1_FILE"
+
+
+#Crear fitxer de configuració del client
+CLIENT_CONF="/tmp/client.conf"
+
+
+cat <<EOF > "$CLIENT_CONF"
+[Interface]
+PrivateKey = ${PRIV_KEY}
+Address = ${IP}/24
+DNS = 192.168.2.1
+
+
+[Peer]
+PublicKey = ${SERVER_PUB}
+Endpoint = 192.168.1.132:51820
+AllowedIPs = 192.168.2.0/24
+PersistentKeepalive = 25
+EOF
+#qrencode -t ANSIUTF8  < "$CLIENT_CONF"
+cat "$CLIENT_CONF"

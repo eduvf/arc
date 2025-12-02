@@ -64,7 +64,8 @@ check_error($ok);
 $ok = $db->exec("CREATE TABLE devices (
 dev_name TEXT PRIMARY KEY,
 dev_ip TEXT NOT NULL,
-last_conn DATETIME
+last_conn DATETIME,
+cert_data TEXT
 )");
 
 check_error($ok);
@@ -76,6 +77,9 @@ time_at DATETIME
 )");
 
 check_error($ok);
+
+
+
 
 $db->close();
 
