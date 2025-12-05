@@ -1,5 +1,11 @@
 <?php
 
+define("ARCDB", "/var/www/db/arc.db");
+define("FILES", "/var/www/files/");
+define("DOWNLOADS", "/var/www/html/download/");
+define("SCRCPY", "/var/www/scrcpy/scrcpy");
+define("LOGFILE", "/var/log/arc.log");
+
 // Comprova que hem iniciat sessió
 function _login_check_is_user() {
     if (empty($_SESSION["user"])) {
@@ -20,6 +26,7 @@ function _login_check_is_user_admin_and_device() {
         header("Location: /");
     }
 }
+
 function encrypt_data($data) {
     $key = 'aSecretKey';  // Clau secreta per encriptar les dades
     $method = 'AES-256-CBC';
@@ -54,4 +61,40 @@ function generate_qr($data) {
     $cmd = "echo $safe_data | qrencode -o - | base64 --wrap=0";
     return exec($cmd);
 }
+
+function _log($msg) {
+    $time = date("Y-m-d H:i:s");
+    exec("echo ".escapeshellarg("<code>$time</code>  $msg")." >> ".LOGFILE);
+}
+
+function _log_list() {
+    // Per defecte només es mostren els últims 100 logs
+    $logs = [];
+    exec("tail -n 100 ".LOGFILE, $logs);
+    return $logs;
+}
+
+function _device_list() {
+    $db = new SQLite3(ARCDB);
+
+    $devices = [];
+    $query = $db->query("SELECT * FROM devices");
+    while ($device = $query->fetchArray()) {
+        $devices[] = $device;
+    }
+
+    $db->close();
+    return $devices;
+}
+
+// function _random_name() {
+//     $chars = "abcdefghijklmnopqrstuvwxyz0123456789_";
+//     $randname = "";
+
+//     for ($i = 0; $i < 20; $i++) {
+//         $randname .= $chars[rand(0, strlen($chars) - 1)];
+//     }
+//     return $randname;
+// }
+
 ?>
