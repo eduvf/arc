@@ -62,6 +62,9 @@ if ($stmt->execute() === false) {
 
 $db->close();
 
-// Redirigir al dashboard un cop afegit el dispositiu
+$user = $_SESSION["user"];
+_log("L'usuari <code>$user</code> ha afegit el dispositiu <code>$name</code> (<code>$ip</code>).");
+
 header("Location: /dashboard.php");
 exit();
+?>

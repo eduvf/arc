@@ -1,4 +1,5 @@
 <?php
+require('_lib.php');
 session_start();
 
 function login_error() {
@@ -49,6 +50,9 @@ if (!$valid) {
 // Ho indiquem amb dues variables de sessió i anem al tauler de control
 $_SESSION["user"] = $user;
 $_SESSION["is_admin"] = $is_admin;
+
+$ip = $_SERVER["REMOTE_ADDR"];
+_log("L'usuari <code>$user</code> ha iniciat sessió des de <code>$ip</code>.");
 
 header("Location: /dashboard.php");
 ?>
