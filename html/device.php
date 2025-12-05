@@ -17,8 +17,8 @@ _login_check_is_user_admin_and_device();
 $user   = $_SESSION["user"];
 $dev_name = $_SESSION["dev_name"];
 
-// Recupera el nom del dispositiu
-$db = new SQLite3("../db/arc.db");
+// Recull l'IP i certificat del dispositiu
+$db = new SQLite3(ARCDB);
 
 $query = $db->query("SELECT dev_ip, cert_data FROM devices WHERE dev_name = '$dev_name'");
 $device = $query->fetchArray();
@@ -67,7 +67,7 @@ $db->close();
 
     <main class="container">
         <div class="grid">
-            <form action="/actions/device_remote.php">
+            <form action="/actions/device_remote.php" target="_blank">
                 <input type="submit" value="Control de pantalla ↗" />
             </form>
             <form action="/actions/device_certificate.php">
@@ -88,7 +88,7 @@ $db->close();
                 }
                 echo $res;
             ?></p>
-            <form action="/actions/device_command.php" method="post">
+            <form action="/actions/device_command.php" method="post" enctype="multipart/form-data">
                 <fieldset role="group">
                     <select name="cmd_type" style="width: fit-content;">
                         <option value="shell">adb shell</option>
@@ -96,14 +96,14 @@ $db->close();
                         <option value="pull">adb pull</option>
                         <option value="install">adb install</option>
                         <option value="uninstall">adb uninstall</option>
-			<option value="list_install">List install packages</option>
-
+			            <option value="list_install">list install packages</option>
                     </select>
                     <input type="text" name="cmd_text_arg" placeholder="Comanda o ruta...">
                     <input type="submit" value="Executa">
                 </fieldset>
                 <input type="file" name="cmd_file_arg">
             </form>
+            <a href="<?= $_SESSION["cmd_download"] ?>"><?= $_SESSION["cmd_download"] ?></a>
             <hr>
             <p><b>Sortida:</b></p>
             <pre><?= implode("\n", $_SESSION["cmd_out"]) ?></pre>
