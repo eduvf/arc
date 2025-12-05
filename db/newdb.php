@@ -70,17 +70,6 @@ cert_data TEXT
 
 check_error($ok);
 
-$ok = $db->exec("CREATE TABLE logs (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-msg TEXT,
-time_at DATETIME
-)");
-
-check_error($ok);
-
-
-
-
 $db->close();
 
 echo "INFO: Base de dades inicialitzada correctament.\n";
