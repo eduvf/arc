@@ -16,17 +16,12 @@ $user = $_SESSION["user"];
 $is_admin = $_SESSION["is_admin"];
 
 _login_check_is_user();
+
 // Recull tots els dispositius registrats a la BD
-$db = new SQLite3("../db/arc.db");
-$devices = [];
+$devices = _device_list();
 
-// Desem tots els dispositius registrats a la variable 'devices'
-$query = $db->query("SELECT * FROM devices");
-while ($device = $query->fetchArray()) {
-    $devices[] = $device;
-}
-
-$db->close();
+// Recull tots els logs
+$logs = _log_list();
 ?>
 
 <body>
@@ -72,6 +67,22 @@ $db->close();
         <hr>
         <?php endif; ?>
 
+        <div class="overflow-auto">
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Registres</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    foreach ($logs as $log) {
+                        echo "<tr><td>$log</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
         <h4>Dispositius registrats</h4>
         <div class="overflow-auto">
             <table class="striped">
@@ -119,7 +130,6 @@ $db->close();
                 </tbody>
             </table>
         </div>
-
     </main>
 </body>
 
