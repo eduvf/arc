@@ -73,4 +73,5 @@ check_error($ok);
 $db->close();
 
 echo "INFO: Base de dades inicialitzada correctament.\n";
+echo "INFO: Assegura't de que l'usuari d'Apache ('www-data', per defecte) té permisos d'escriptura en aquest directori.\n";
 ?>
